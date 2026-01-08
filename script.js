@@ -191,12 +191,30 @@ function validateIndividualAmounts(totalAmount, payer) {
 
 // Add expense
 function addExpense() {
-    const amount = parseFloat(document.getElementById('amountInput').value);
+    const amountInput = document.getElementById('amountInput').value.trim();
     const payer = document.getElementById('payerSelect').value;
     const mode = document.querySelector('input[name="divisionMode"]:checked').value;
-    
-    if (!amount || amount <= 0) {
-        alert('Please enter a valid amount');
+
+    // Allow commas as thousand separators, scientific notation (e/E), and modulus '%'.
+    // Remove commas before testing/evaluating so users can enter values like "1,000 + 250".
+    const sanitizedInput = amountInput.replace(/,/g, '');
+    const validExpression = /^[0-9+\-*/().\s% eE]+$/;
+    if (!validExpression.test(sanitizedInput)){
+        alert("Please enter a valid numeric expression");
+        return;
+    }
+
+    let amount;
+
+    try{
+        amount = Function(`"use strict"; return (${sanitizedInput})`)();
+    }catch{
+        alert("Please enter a valid mathematical expression");
+        return;
+    }
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+        alert("Please enter a valid amount greater than 0");
         return;
     }
     
